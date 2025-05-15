@@ -8,9 +8,9 @@ public class UIManager : MonoBehaviour
 {
     [SerializeField] private Button[] _allReasonButton;
     [SerializeField, TextArea(2, 2)] private string[] _reasons;
-    [SerializeField] private TMP_Text[] _timesText; // 0 — текущее, 1 — последнее
+    [SerializeField] private TMP_InputField _otherReasons;
+    [SerializeField] private TMP_Text[] _timesText;
     [SerializeField] private Image _background;
-    [SerializeField] private Color[] _colors; // 0 - green, 1 -red
 
     private void Awake()
     {
@@ -21,15 +21,23 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
-        _timesText[0].text = "Текущее время: " + DateTime.Now.ToString("HH:mm:ss");
+        _timesText[0].text = "Текущее время: " + TimeManager.Instance.CurrentTime;
     }
 
-    private void SaveLastTag(int type)
+    private void SaveLastTag(int typeIndex)
     {
-        string time = DateTime.Now.ToString("HH:mm:ss");
-        PlayerPrefs.SetString("Type", _reasons[type]);
-        PlayerPrefs.SetString("LastTime", time);
-        PlayerPrefs.Save();
+        SaveLastTagInternal(_reasons[typeIndex]);
+    }
+
+    private void SaveLastTag(string otherType)
+    {
+        SaveLastTagInternal(otherType);
+    }
+
+    private void SaveLastTagInternal(string tag)
+    {
+        PlayerPrefsManager.SaveStringPrefs("Type", tag);
+        PlayerPrefsManager.SaveLastDateTime(DateTime.Now);
 
         CheckElapsedTime();
         CheckLastTime();
@@ -42,41 +50,46 @@ public class UIManager : MonoBehaviour
             int index = i;
             _allReasonButton[i].onClick.AddListener(() => SaveLastTag(index));
         }
+        _otherReasons.onSubmit.AddListener(SaveLastTag);
     }
 
     private void CheckElapsedTime()
     {
-        if (PlayerPrefs.HasKey("LastTime"))
-        {
-            string saved = PlayerPrefs.GetString("LastTime");
-            if (TimeSpan.TryParseExact(saved, @"hh\:mm\:ss", CultureInfo.InvariantCulture, out TimeSpan savedTime))
-            {
-                TimeSpan nowTime = DateTime.Now.TimeOfDay;
-                TimeSpan elapsed = nowTime - savedTime;
-                if (elapsed < TimeSpan.Zero)
-                    elapsed += TimeSpan.FromDays(1);
+        if (!PlayerPrefsManager.TryGetLastDateTime(out var savedDt))
+            return;
 
-                _background.color = elapsed.TotalHours > 2
-                    ? _colors[1]
-                    : _colors[0];
-            }
-            else
-            {
-                Debug.LogWarning("Неправильный формат сохранённого времени: " + saved);
-            }
-        }
+        var now = DateTime.Now;
+        var elapsed = now - savedDt;
+
+        int days = elapsed.Days;               
+        int hours = elapsed.Hours;              
+        int minutes = elapsed.Minutes;           
+
+        bool isAway = days > 0 || hours >= 2;
+        _background.color = isAway
+            ? ColorManager.Instance.RedColor
+            : ColorManager.Instance.GreenColor;
     }
 
     private void CheckLastTime()
     {
-        if (PlayerPrefs.HasKey("LastTime"))
-        {
-            _timesText[1].text = $"Последний тег был в {PlayerPrefs.GetString("LastTime")} с пометкой «{PlayerPrefs.GetString("Type")}»";
-        }
-        else
+        if (!PlayerPrefsManager.TryGetLastDateTime(out var savedDt))
         {
             _timesText[1].text = "Не было сохранений";
+            return;
         }
+
+        var elapsed = DateTime.Now - savedDt;
+        int days = elapsed.Days;
+        int hours = elapsed.Hours;
+        int minutes = elapsed.Minutes;
+
+        string tag = PlayerPrefsManager.GetStringSave("Type");
+
+        _timesText[1].text = string.Format(
+            "С последнего тега прошло {0} ч. {1} мин. с пометкой «{2}»",
+             hours, minutes, tag
+        );
     }
 
 }
