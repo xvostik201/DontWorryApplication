@@ -12,6 +12,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TMP_Text[] _timesText;
     [SerializeField] private Image _background;
 
+    private const string _prefsType = "Type";
+
     private void Awake()
     {
         CheckElapsedTime();
@@ -30,7 +32,7 @@ public class UIManager : MonoBehaviour
 
     private void SaveLastTagInternal(string tag)
     {
-        PlayerPrefsManager.SaveStringPrefs("Type", tag);
+        PlayerPrefsManager.SaveStringPrefs(_prefsType, tag);
         PlayerPrefsManager.SaveLastDateTime(DateTime.Now);
 
         CheckElapsedTime();
@@ -78,7 +80,7 @@ public class UIManager : MonoBehaviour
         int hours = elapsed.Hours;
         int minutes = elapsed.Minutes;
 
-        string tag = PlayerPrefsManager.GetStringSave("Type");
+        string tag = PlayerPrefsManager.GetStringSave(_prefsType);
 
         _timesText[1].text = string.Format(
             "С последнего тега прошло {0} ч. {1} мин. с пометкой «{2}»",
