@@ -18,12 +18,6 @@ public class UIManager : MonoBehaviour
         CheckLastTime();
         InstantiateTypesToButtons();
     }
-
-    private void Update()
-    {
-        _timesText[0].text = "Текущее время: " + TimeManager.Instance.CurrentTime;
-    }
-
     private void SaveLastTag(int typeIndex)
     {
         SaveLastTagInternal(_reasons[typeIndex]);
