@@ -20,6 +20,20 @@ public class UIManager : MonoBehaviour
         CheckLastTime();
         InstantiateTypesToButtons();
     }
+    private void OnEnable()
+    {
+        _timesText[0].text = "Текущее время: " + TimeManager.Instance.CurrentTime;
+        TimeManager.Instance.OnTimeChanged += TimeChanged;
+    }
+    private void OnDisable()
+    {
+        TimeManager.Instance.OnTimeChanged -= TimeChanged;
+    }
+
+    private void TimeChanged(string newTime)
+    {
+        _timesText[0].text = "Текущее время: " + newTime;
+    }
     private void SaveLastTag(int typeIndex)
     {
         SaveLastTagInternal(_reasons[typeIndex]);
