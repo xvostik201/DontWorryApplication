@@ -6,10 +6,20 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
+    [Header("Buttons")]
     [SerializeField] private Button[] _allReasonButton;
+
+    [Header("Reasons")]
     [SerializeField, TextArea(2, 2)] private string[] _reasons;
-    [SerializeField] private TMP_InputField _otherReasons;
-    [SerializeField] private TMP_Text[] _timesText;
+
+    [Header("InputField")]
+    [SerializeField] private TMP_InputField _otherReasonsInputField;
+
+    [Header("Texts")]
+    [SerializeField] private TMP_Text _currentTimeText;
+    [SerializeField] private TMP_Text _lastTimeText;
+
+    [Header("Background")]
     [SerializeField] private Image _background;
 
     private const string _prefsType = "Type";
@@ -22,7 +32,7 @@ public class UIManager : MonoBehaviour
     }
     private void OnEnable()
     {
-        _timesText[0].text = "Текущее время: " + TimeManager.Instance.CurrentTime;
+        _currentTimeText.text = "Текущее время: " + TimeManager.Instance.CurrentTime;
         TimeManager.Instance.OnTimeChanged += TimeChanged;
     }
     private void OnDisable()
@@ -32,7 +42,7 @@ public class UIManager : MonoBehaviour
 
     private void TimeChanged(string newTime)
     {
-        _timesText[0].text = "Текущее время: " + newTime;
+        _currentTimeText.text = "Текущее время: " + newTime;
     }
     private void SaveLastTag(int typeIndex)
     {
@@ -60,7 +70,7 @@ public class UIManager : MonoBehaviour
             int index = i;
             _allReasonButton[i].onClick.AddListener(() => SaveLastTag(index));
         }
-        _otherReasons.onSubmit.AddListener(SaveLastTag);
+        _otherReasonsInputField.onSubmit.AddListener(SaveLastTag);
     }
 
     private void CheckElapsedTime()
@@ -85,7 +95,7 @@ public class UIManager : MonoBehaviour
     {
         if (!PlayerPrefsManager.TryGetLastDateTime(out var savedDt))
         {
-            _timesText[1].text = "Не было сохранений";
+            _lastTimeText.text = "Не было сохранений";
             return;
         }
 
@@ -96,7 +106,7 @@ public class UIManager : MonoBehaviour
 
         string tag = PlayerPrefsManager.GetStringSave(_prefsType);
 
-        _timesText[1].text = string.Format(
+        _lastTimeText.text = string.Format(
             "С последнего тега прошло {0} ч. {1} мин. с пометкой «{2}»",
              hours, minutes, tag
         );
